@@ -29,9 +29,10 @@ reply(Status, Headers, Body, Req, State) ->
        Resp :: {ok, Req, term()}.
 with_json_body(Req, State, Fun) ->
   {ok, Body, _} = cowboy_req:body(Req),
-  case json:parse(Body) of
+  case jsonx:decode(Body, [{format, proplist}]) of
     {incomplete, _} ->  reply(400, <<"\"Invalid json\"">>, Req, State);
     {error,_,_} -> reply(400, <<"\"Invalid json\"">>, Req, State);
+    {InData} -> Fun(InData);
     InData ->
       Fun(InData)
   end.

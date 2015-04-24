@@ -5,7 +5,12 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  lager,
+                  compiler,
+                  syntax_tools,
+                  lager,
+                  cowboy
                  ]},
   {mod, { myapp_app, []}},
   {env, []}

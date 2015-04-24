@@ -3,13 +3,24 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/0, start/2, stop/1]).
 
 %% ===================================================================
 %% Application callbacks
 %% ===================================================================
 
+start() ->
+  lager:start(),
+  application:start(crypto),
+  application:start(sasl),
+  application:start(ranch),
+  application:start(cowlib),
+  application:start(cowboy),
+  application:start(myapp).
+
+
 start(_StartType, _StartArgs) ->
+  storage:start(),
   Dispatch = cowboy_router:compile([
     %% {HostMatch, list({PathMatch, Handler, Opts})}
     {'_', [
