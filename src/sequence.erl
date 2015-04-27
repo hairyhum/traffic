@@ -18,6 +18,7 @@ new_sequence() ->
 -spec check_observation(sequence_id(), {binary(), [sector_code()]}) -> 
     {ok, {[integer()], [sector_code()]}} | {error, observation_error()}.
 check_observation(SequenceId, Observation) ->
+lager:error("Observation ~p", [Observation]),
   case get_sequence(SequenceId) of
     {ok, Sequence} -> 
       case process_observation(Sequence, Observation) of
@@ -37,6 +38,7 @@ process_observation(Sequence, {<<"red">>, _}) ->
     N ->
       Start = [N],
       Missing = calc_missing(Start, Sequence, []),
+      lager:error("calculated missing ~p", [Missing]),
       NewSequence = sequence:finish(Start, Missing, Sequence),
       {ok, {Start, Missing, NewSequence}}
   end;
@@ -47,7 +49,9 @@ process_observation(Sequence, {<<"green">>, Numbers}) ->
       EncodedNumbers = encode_numbers(Numbers),
       case guess_start(EncodedNumbers, Sequence) of
         {ok, Start} ->
+          lager:error("starts ~p", [Start]),
           Missing = calc_missing(Start, Sequence, [EncodedNumbers]),
+          lager:error("calculated missing ~p", [Missing]),
           NewSequence = sequence:next(Start, Missing, EncodedNumbers, Sequence),
           {ok, {Start, Missing, NewSequence}};
         {error, Err} -> {error, Err}
@@ -56,29 +60,24 @@ process_observation(Sequence, {<<"green">>, Numbers}) ->
 
 -spec calc_missing([integer()], sequence(), [number()]) -> [sector_code()].
 calc_missing(Start, Sequence, CurrentNumbers) ->
-  Length = sequence:length(Sequence),
-  Paths = [ lists:seq(StartNum - Length, StartNum) || StartNum <- Start ],
   NumbersPath = CurrentNumbers ++ sequence:path(Sequence),
-  Missing = lists:filtermap(
-    fun(Path) ->
+  Length = erlang:length(NumbersPath),
+  Paths = [ lists:seq(StartNum + 1 - Length, StartNum) || StartNum <- Start, StartNum >= Length, StartNum > 0 ],
+  {Missing1, Missing2} = lists:foldl(
+    fun(Path, {Acc1, Acc2}) ->
       EncodedPath = [ {encode_integer(N div 10), encode_integer(N rem 10)} || N <- Path ],
-      case compare_path(EncodedPath, NumbersPath) of
-        {ok, Missing} -> {true, Missing};
-        error -> false
-      end
+      {M1, M2} = compare_path(EncodedPath, NumbersPath),
+      {M1 bor Acc1, M2 bor Acc2}
     end,
+    {0, 0},
     Paths),
-  decode_numbers(lists:flatten(Missing)).
+  [decode_number(Missing1), decode_number(Missing2)].
 
--spec decode_numbers([integer()]) -> [sector_code()].
-decode_numbers(Missing) ->
-  lists:map(
-    fun(Num) ->
-      Bin = integer_to_binary(Num, 2),
-      Filler = binary:copy(<<"0">>, 7 - byte_size(Bin)),
-      <<Filler/binary, Bin/binary>>
-    end,
-    Missing).
+-spec decode_number(integer()) -> sector_code().
+decode_number(Missing) ->
+  Bin = integer_to_binary(Missing, 2),
+  Filler = binary:copy(<<"0">>, 7 - byte_size(Bin)),
+  <<Filler/binary, Bin/binary>>.
 
 -spec encode_numbers([sector_code()]) -> {integer(), integer()}.
 encode_numbers([N1, N2]) -> { binary_to_integer(N1, 2), binary_to_integer(N2, 2) }.
@@ -95,7 +94,7 @@ encode_integer(7) -> 82;
 encode_integer(8) -> 127;
 encode_integer(9) -> 123.
 
--spec compare_path([number()], [number()]) -> {ok, [integer()]} | error.
+-spec compare_path([number()], [number()]) -> number().
 compare_path(Path, NumbersPath) ->
   Merged = lists:zipwith(
     fun({PathN1, PathN2}, {NPathN1, NPathN2}) ->
@@ -107,12 +106,9 @@ compare_path(Path, NumbersPath) ->
     NumbersPath),
   lists:foldl(
     fun
-      (_, false) -> error;
-      ({0, _}, _) -> error;
-      ({_, 0}, _) -> error;
-      ({M1, M2}, {ok, Missing}) -> {ok, [M1, M2 | Missing]}
+      ({M1, M2}, {Missing1, Missing2}) -> {M1 bor Missing1, M2 bor Missing2}
     end,
-    {ok, []},
+    {0,0},
     Merged).
 
 -spec guess_start({integer(), integer()}, sequence()) -> {ok, [integer()]} | {error, observation_error}.
