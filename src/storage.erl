@@ -6,7 +6,7 @@
 start() ->
   mnesia:create_schema([node()]),
   mnesia:start(),
-  mnesia:create_table(sequence, []).
+  mnesia:create_table(sequence, [{attributes, sequence:schema()}]).
 
 clear() ->
   mnesia:clear_table(sequence),
@@ -25,7 +25,7 @@ create(Sequence) ->
 find(SequenceId) ->
   case mnesia:dirty_read(sequence, SequenceId) of
     [] -> {error, not_found};
-    [{sequence, SequenceId, Data}] -> {ok, Data}
+    [Sequence] -> {ok, Sequence}
   end.
 
 update(Sequence) ->

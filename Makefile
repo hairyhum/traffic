@@ -10,10 +10,15 @@ clean:
 	./rebar clean
 
 console:
-	erl -pa ebin -pa deps/*/ebin
+	erl -pa ebin -pa deps/*/ebin -s myapp_app start
 
-tests:
+eunit:
+	./rebar eunit skip_deps=true
+
+common_test:
 	./rebar ct skip_deps=true
+
+tests: common_test eunit
 
 build_plt:
 	ERL_LIBS=$(PWD)/deps dialyzer --build_plt --output_plt $(APP_NAME).plt --apps erts kernel stdlib crypto public_key ssl edoc mnesia -r deps

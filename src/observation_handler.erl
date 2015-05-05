@@ -16,8 +16,6 @@ handle(Req, State) ->
 
 add_observation(Req, State) ->
   req:with_json_body(Req, State, fun(Body) ->
-    {Path, _} = cowboy_req:path(Req),
-    lager:error("Path ~p", [Path]),
     case parse_observation(Body) of
       {ok, {SequenceId, {Color, Numbers}}} ->
         case observation:check_observation(SequenceId, {Color, Numbers}) of
@@ -35,8 +33,8 @@ add_observation(Req, State) ->
 
 parse_observation(Data) when not is_list(Data) -> {error, "Data shpuld be json object"};
 parse_observation(Data) ->
-  SequenceId = proplists:get_value(sequence, Data),
-  Observation = proplists:get_value(observation, Data),
+  SequenceId = proplists:get_value(<<"sequence">>, Data),
+  Observation = proplists:get_value(<<"observation">>, Data),
   if 
     SequenceId == undefined ->
       {error, "Sequence required"};
@@ -52,14 +50,14 @@ parse_observation(Data) ->
       if 
         Color == undefined ->
           {error, "Color is required"};
-        Color =/= <<"green">>; Color =/= <<"red">> ->
+        Color =/= <<"green">>, Color =/= <<"red">> ->
           {error, "Color can be either red or green"};
         Numbers == undefined andalso Color =/= <<"red">> ->
           {error, "Numbers required for green color"};
         Color =/= <<"red">>, not is_list(Numbers) orelse length(Numbers) =/= 2 ->
           {error, "Exaxtly 2 numbers required"};
         true ->
-          {SequenceId, {Color, Numbers}}
+          {ok, {SequenceId, {Color, Numbers}}}
       end
   end.
 

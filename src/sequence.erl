@@ -8,7 +8,8 @@
   start/1, 
   finish/2, 
   next/3, 
-  finished/1
+  finished/1,
+  schema/0
 ]).
 
 
@@ -50,8 +51,8 @@ finish(Start, Sequence) ->
   Sequence#sequence{ finished = true, start = Start }.
 
 -spec finished(sequence()) -> boolean().
-finished(Sequence) ->
-  proplists:get_value(<<"finished">>, Sequence, false).
+finished(#sequence{ finished = true }) -> true;
+finished(#sequence{ finished = _ }) -> false.
 
 -spec next([integer()], numbers(), sequence()) -> sequence().
 next(Start, Numbers, Sequence) ->
@@ -60,3 +61,5 @@ next(Start, Numbers, Sequence) ->
     path = [Numbers | Path],
     start = Start
   }.
+
+schema() -> record_info(fields, sequence).

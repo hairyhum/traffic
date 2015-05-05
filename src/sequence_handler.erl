@@ -15,6 +15,6 @@ handle(Req, State) ->
   end.
 
 new_sequence(Req, State) ->
-  {ok, SequenceId} = sequence:new_sequence(),
+  {ok, SequenceId} = observation:new_sequence(),
   Response = jsonx:encode([{status, ok}, {sequence, SequenceId}]),
   req:reply(200, Response, Req, State).

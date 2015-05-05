@@ -16,6 +16,6 @@ handle(Req, State) ->
 
 
 clear_data(Req, State) ->
-  ok = sequence:clear(),
+  ok = observation:clear(),
   Response = jsonx:encode([{status, ok}, {response, ok}]),
   req:reply(200, Response, Req, State).
