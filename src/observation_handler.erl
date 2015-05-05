@@ -23,13 +23,18 @@ add_observation(Req, State) ->
             Response = jsonx:encode([{status, ok}, {response, [{start, Start}, {missing, Missing}]}]),
             req:reply(200, Response, Req, State);
           {error, Err} ->
-            Response = jsonx:encode([{status, error}, {msg, Err}]),
+            Response = jsonx:encode([{status, error}, {msg, error_msg(Err)}]),
             req:reply(422, Response, Req, State)
         end;
       {error, Reason} ->
         req:reply(400, Reason, Req, State)
     end
   end).
+
+error_msg(sequence_not_found) -> <<"“The sequence isn't found">>;
+error_msg(no_solutions_found) -> <<"No solutions found">>;
+error_msg(not_enough_data) -> <<"There isn't enough data">>;
+error_msg(red_observation_not_last) -> <<"“The red observation should be the last">>.
 
 parse_observation(Data) when not is_list(Data) -> {error, "Data shpuld be json object"};
 parse_observation(Data) ->
