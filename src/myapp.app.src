@@ -13,5 +13,5 @@
                   cowboy
                  ]},
   {mod, { myapp_app, []}},
-  {env, []}
+  {env, [{port, 8080}]}
  ]}.

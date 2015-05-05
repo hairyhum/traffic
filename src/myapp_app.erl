@@ -21,6 +21,7 @@ start() ->
 
 start(_StartType, _StartArgs) ->
   storage:start(),
+  Port = application:get_env(port),
   Dispatch = cowboy_router:compile([
     %% {HostMatch, list({PathMatch, Handler, Opts})}
     {'_', [
@@ -31,7 +32,7 @@ start(_StartType, _StartArgs) ->
   ]),
   %% Name, NbAcceptors, TransOpts, ProtoOpts
   cowboy:start_http(my_http_listener, 100,
-    [{port, 8080}],
+    [{port, Port}],
     [{env, [{dispatch, Dispatch}]}]
   ),
   myapp_sup:start_link().

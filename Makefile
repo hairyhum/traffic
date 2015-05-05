@@ -3,6 +3,9 @@ APP_NAME = front
 PWD=`pwd`
 export PATH := /opt/bin:$(PATH)
 
+deps:
+	./rebar get_deps
+
 compile:
 	./rebar compile
 
