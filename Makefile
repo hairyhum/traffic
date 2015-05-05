@@ -12,6 +12,9 @@ clean:
 console:
 	erl -pa ebin -pa deps/*/ebin
 
+tests:
+	./rebar ct skip_deps=true
+
 build_plt:
 	ERL_LIBS=$(PWD)/deps dialyzer --build_plt --output_plt $(APP_NAME).plt --apps erts kernel stdlib crypto public_key ssl edoc mnesia -r deps
 analyze: compile 

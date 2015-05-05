@@ -1,7 +1,7 @@
 -module(storage).
 
 -export([start/0]).
--export([find/1, new/1, update/2, clear/0]).
+-export([find/1, save/1, clear/0]).
 
 start() ->
   mnesia:create_schema([node()]),
@@ -12,8 +12,15 @@ clear() ->
   mnesia:clear_table(sequence),
   ok.
 
-new(SequenceId) ->
-  mnesia:dirty_write(sequence, {sequence, SequenceId, []}).
+save(Sequence) ->
+  Id = sequence:id(Sequence),
+  case find(Id) of
+    {error, not_found} -> create(Sequence);
+    {ok, _} -> update(Sequence)
+  end. 
+
+create(Sequence) ->
+  mnesia:dirty_write(sequence, Sequence).
 
 find(SequenceId) ->
   case mnesia:dirty_read(sequence, SequenceId) of
@@ -21,5 +28,5 @@ find(SequenceId) ->
     [{sequence, SequenceId, Data}] -> {ok, Data}
   end.
 
-update(SequenceId, Data) ->
-  mnesia:dirty_write(sequence, {sequence, SequenceId, Data}).
+update(Sequence) ->
+  mnesia:dirty_write(sequence, Sequence).

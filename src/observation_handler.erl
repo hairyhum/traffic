@@ -20,7 +20,7 @@ add_observation(Req, State) ->
     lager:error("Path ~p", [Path]),
     case parse_observation(Body) of
       {ok, {SequenceId, {Color, Numbers}}} ->
-        case sequence:add_observation(SequenceId, {Color, Numbers}) of
+        case observation:check_observation(SequenceId, {Color, Numbers}) of
           {ok, {Start, Missing}} ->
             Response = jsonx:encode([{status, ok}, {response, [{start, Start}, {missing, Missing}]}]),
             req:reply(200, Response, Req, State);
