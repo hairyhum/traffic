@@ -1,4 +1,4 @@
-{application, myapp,
+{application, traffic_light,
  [
   {description, ""},
   {vsn, "1"},
@@ -12,6 +12,6 @@
                   lager,
                   cowboy
                  ]},
-  {mod, { myapp_app, []}},
+  {mod, { traffic_light_app, []}},
   {env, [{port, 8080}]}
  ]}.

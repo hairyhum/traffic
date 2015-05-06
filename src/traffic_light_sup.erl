@@ -1,4 +1,4 @@
--module(myapp_sup).
+-module(traffic_light_sup).
 
 -behaviour(supervisor).
 

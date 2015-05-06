@@ -19,3 +19,5 @@ Make tasks to quickly build and run application:
 - make compile - compile application
 - make console - start application in erlang console
 - make tests - run tests (eunit and common_test)
+- make start - start application without console
+- make stop - stop started application

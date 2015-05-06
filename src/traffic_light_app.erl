@@ -1,4 +1,4 @@
--module(myapp_app).
+-module(traffic_light_app).
 
 -behaviour(application).
 
@@ -16,12 +16,12 @@ start() ->
   application:start(ranch),
   application:start(cowlib),
   application:start(cowboy),
-  application:start(myapp).
+  application:start(traffic_light).
 
 
 start(_StartType, _StartArgs) ->
   storage:start(),
-  Port = application:get_env(port),
+  {ok, Port} = application:get_env(port),
   Dispatch = cowboy_router:compile([
     %% {HostMatch, list({PathMatch, Handler, Opts})}
     {'_', [
@@ -35,7 +35,7 @@ start(_StartType, _StartArgs) ->
     [{port, Port}],
     [{env, [{dispatch, Dispatch}]}]
   ),
-  myapp_sup:start_link().
+  traffic_light_sup:start_link().
 
 stop(_State) ->
   ok.

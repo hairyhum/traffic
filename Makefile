@@ -1,19 +1,25 @@
 #!/usr/bin/env sh
-APP_NAME = front
+APP_NAME = traffic_light
 PWD=`pwd`
 export PATH := /opt/bin:$(PATH)
 
 deps:
-	./rebar get_deps
+	./rebar get-deps
 
-compile:
+compile: deps
 	./rebar compile
 
 clean:
 	./rebar clean
 
 console:
-	erl -pa ebin -pa deps/*/ebin -s myapp_app start
+	erl -sname traffic_light@localhost -pa ebin -pa deps/*/ebin -s traffic_light_app start
+
+start:
+	erl -sname traffic_light@localhost -detached -pa ebin -pa deps/*/ebin -s traffic_light_app start
+
+stop:
+	./stop.escript traffic_light@localhost
 
 eunit:
 	./rebar eunit skip_deps=true
@@ -21,7 +27,7 @@ eunit:
 common_test:
 	./rebar ct skip_deps=true
 
-tests: common_test eunit
+tests: compile common_test eunit
 
 build_plt:
 	ERL_LIBS=$(PWD)/deps dialyzer --build_plt --output_plt $(APP_NAME).plt --apps erts kernel stdlib crypto public_key ssl edoc mnesia -r deps
